@@ -60,7 +60,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				IsOverlay					= true;
 				IsSuspendedWhileInactive	= true;
 
-				SwingStrength = 10;
+				SwingStrength = 15;
 				MinSwingLength = 40;
 				LowFibPercent = 50.0;
 				HighFibPercent = 76.4;
