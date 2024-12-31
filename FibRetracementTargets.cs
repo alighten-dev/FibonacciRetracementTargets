@@ -64,6 +64,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 				MinSwingLength = 40;
 				LowFibPercent = 50.0;
 				HighFibPercent = 76.4;
+				RequireSwingTrend = true;
 				
 				myFont = new NinjaTrader.Gui.Tools.SimpleFont("Courier New", 12) { Size = 25, Bold = true };
 				previousSwingHighBar = 0;
@@ -117,9 +118,13 @@ namespace NinjaTrader.NinjaScript.Indicators
 					
 					
 					//Bear Fibonocci Retracement
-					if (swingHighBarsAgo > swingLowBarsAgo && (latestSwingHigh - latestSwingLow >= MinSwingLength) && latestSwingHighBar != previousSwingHighBar && latestSwingLow < trendSwingLow)
+					if (swingHighBarsAgo > swingLowBarsAgo && (latestSwingHigh - latestSwingLow >= MinSwingLength) && latestSwingHighBar != previousSwingHighBar)
 					{
-
+						if(RequireSwingTrend)
+						{
+							if(latestSwingLow > trendSwingLow)
+								return;
+						}
 						bearFibLevel1 = ((High[swingHighBarsAgo] - Low[swingLowBarsAgo]) *LowFibPercent/100) + Low[swingLowBarsAgo];
 						bearFibLevel2 = ((High[swingHighBarsAgo] - Low[swingLowBarsAgo]) *HighFibPercent/100) + Low[swingLowBarsAgo];
 			
@@ -131,8 +136,13 @@ namespace NinjaTrader.NinjaScript.Indicators
 					
 					
 					//Bull Fibonocci Retracement
-					if (swingLowBarsAgo > swingHighBarsAgo && (latestSwingHigh - latestSwingLow >= MinSwingLength) && latestSwingHighBar != previousSwingHighBar && latestSwingHigh > trendSwingHigh)
+					if (swingLowBarsAgo > swingHighBarsAgo && (latestSwingHigh - latestSwingLow >= MinSwingLength) && latestSwingHighBar != previousSwingHighBar)
 					{
+						if(RequireSwingTrend)
+						{
+							if(latestSwingHigh < trendSwingHigh)
+								return;
+						}
 						
 						bullFibLevel1 = High[swingHighBarsAgo] - ((High[swingHighBarsAgo] - Low[swingLowBarsAgo]) *LowFibPercent/100);
 						bullFibLevel2 = High[swingHighBarsAgo] - ((High[swingHighBarsAgo] - Low[swingLowBarsAgo]) *HighFibPercent/100);
@@ -170,6 +180,10 @@ namespace NinjaTrader.NinjaScript.Indicators
 		[Display(Name="HighFibPercent", Order=4, GroupName="Parameters")]
 		public double HighFibPercent
 		{ get; set; }
+		[NinjaScriptProperty]
+		[Display(Name="RequireSwingTrend", Order=5, GroupName="Parameters")]
+		public bool RequireSwingTrend
+		{ get; set; }
 		
 		
 		#endregion
@@ -183,18 +197,18 @@ namespace NinjaTrader.NinjaScript.Indicators
 	public partial class Indicator : NinjaTrader.Gui.NinjaScript.IndicatorRenderBase
 	{
 		private FibRetracementTargets[] cacheFibRetracementTargets;
-		public FibRetracementTargets FibRetracementTargets(int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent)
+		public FibRetracementTargets FibRetracementTargets(int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent, bool requireSwingTrend)
 		{
-			return FibRetracementTargets(Input, swingStrength, minSwingLength, lowFibPercent, highFibPercent);
+			return FibRetracementTargets(Input, swingStrength, minSwingLength, lowFibPercent, highFibPercent, requireSwingTrend);
 		}
 
-		public FibRetracementTargets FibRetracementTargets(ISeries<double> input, int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent)
+		public FibRetracementTargets FibRetracementTargets(ISeries<double> input, int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent, bool requireSwingTrend)
 		{
 			if (cacheFibRetracementTargets != null)
 				for (int idx = 0; idx < cacheFibRetracementTargets.Length; idx++)
-					if (cacheFibRetracementTargets[idx] != null && cacheFibRetracementTargets[idx].SwingStrength == swingStrength && cacheFibRetracementTargets[idx].MinSwingLength == minSwingLength && cacheFibRetracementTargets[idx].LowFibPercent == lowFibPercent && cacheFibRetracementTargets[idx].HighFibPercent == highFibPercent && cacheFibRetracementTargets[idx].EqualsInput(input))
+					if (cacheFibRetracementTargets[idx] != null && cacheFibRetracementTargets[idx].SwingStrength == swingStrength && cacheFibRetracementTargets[idx].MinSwingLength == minSwingLength && cacheFibRetracementTargets[idx].LowFibPercent == lowFibPercent && cacheFibRetracementTargets[idx].HighFibPercent == highFibPercent && cacheFibRetracementTargets[idx].RequireSwingTrend == requireSwingTrend && cacheFibRetracementTargets[idx].EqualsInput(input))
 						return cacheFibRetracementTargets[idx];
-			return CacheIndicator<FibRetracementTargets>(new FibRetracementTargets(){ SwingStrength = swingStrength, MinSwingLength = minSwingLength, LowFibPercent = lowFibPercent, HighFibPercent = highFibPercent }, input, ref cacheFibRetracementTargets);
+			return CacheIndicator<FibRetracementTargets>(new FibRetracementTargets(){ SwingStrength = swingStrength, MinSwingLength = minSwingLength, LowFibPercent = lowFibPercent, HighFibPercent = highFibPercent, RequireSwingTrend = requireSwingTrend }, input, ref cacheFibRetracementTargets);
 		}
 	}
 }
@@ -203,14 +217,14 @@ namespace NinjaTrader.NinjaScript.MarketAnalyzerColumns
 {
 	public partial class MarketAnalyzerColumn : MarketAnalyzerColumnBase
 	{
-		public Indicators.FibRetracementTargets FibRetracementTargets(int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent)
+		public Indicators.FibRetracementTargets FibRetracementTargets(int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent, bool requireSwingTrend)
 		{
-			return indicator.FibRetracementTargets(Input, swingStrength, minSwingLength, lowFibPercent, highFibPercent);
+			return indicator.FibRetracementTargets(Input, swingStrength, minSwingLength, lowFibPercent, highFibPercent, requireSwingTrend);
 		}
 
-		public Indicators.FibRetracementTargets FibRetracementTargets(ISeries<double> input , int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent)
+		public Indicators.FibRetracementTargets FibRetracementTargets(ISeries<double> input , int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent, bool requireSwingTrend)
 		{
-			return indicator.FibRetracementTargets(input, swingStrength, minSwingLength, lowFibPercent, highFibPercent);
+			return indicator.FibRetracementTargets(input, swingStrength, minSwingLength, lowFibPercent, highFibPercent, requireSwingTrend);
 		}
 	}
 }
@@ -219,14 +233,14 @@ namespace NinjaTrader.NinjaScript.Strategies
 {
 	public partial class Strategy : NinjaTrader.Gui.NinjaScript.StrategyRenderBase
 	{
-		public Indicators.FibRetracementTargets FibRetracementTargets(int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent)
+		public Indicators.FibRetracementTargets FibRetracementTargets(int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent, bool requireSwingTrend)
 		{
-			return indicator.FibRetracementTargets(Input, swingStrength, minSwingLength, lowFibPercent, highFibPercent);
+			return indicator.FibRetracementTargets(Input, swingStrength, minSwingLength, lowFibPercent, highFibPercent, requireSwingTrend);
 		}
 
-		public Indicators.FibRetracementTargets FibRetracementTargets(ISeries<double> input , int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent)
+		public Indicators.FibRetracementTargets FibRetracementTargets(ISeries<double> input , int swingStrength, int minSwingLength, double lowFibPercent, double highFibPercent, bool requireSwingTrend)
 		{
-			return indicator.FibRetracementTargets(input, swingStrength, minSwingLength, lowFibPercent, highFibPercent);
+			return indicator.FibRetracementTargets(input, swingStrength, minSwingLength, lowFibPercent, highFibPercent, requireSwingTrend);
 		}
 	}
 }
