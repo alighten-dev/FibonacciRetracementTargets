@@ -109,11 +109,26 @@ namespace NinjaTrader.NinjaScript.Indicators
 				if(trendHighBarsAgo > -1 && trendLowBarsAgo > -1)
 				{
 					
-					trendSwingHigh = Swing1.SwingHigh[trendHighBarsAgo];
-					trendSwingLow =  Swing1.SwingLow[trendLowBarsAgo];
+					try
+					{			
 					
-					latestSwingHigh = Swing1.SwingHigh[swingHighBarsAgo];
-					latestSwingLow =  Swing1.SwingLow[swingLowBarsAgo];
+						trendSwingHigh = Swing1.SwingHigh[trendHighBarsAgo];
+						trendSwingLow =  Swing1.SwingLow[trendLowBarsAgo];
+						
+						latestSwingHigh = Swing1.SwingHigh[swingHighBarsAgo];
+						latestSwingLow =  Swing1.SwingLow[swingLowBarsAgo];
+						
+					}
+					catch (Exception e)
+					{
+						// In case the indicator has already been Terminated, you can safely ignore errors
+						if (State >= State.Terminated)
+							return;
+						
+						Log("FibRetracementTargets Error: Please check your indicator for errors.", NinjaTrader.Cbi.LogLevel.Warning);
+						
+						Print(Time[0] + " " + e.ToString());
+					}
 					
 					
 					
