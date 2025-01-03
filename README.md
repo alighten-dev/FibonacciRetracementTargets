@@ -4,3 +4,6 @@ Fibonacci Retracement Targets automatically draws Fibonacci Retracement target b
 
 ![image](https://github.com/user-attachments/assets/0c1ed173-d519-494d-9c80-dfde391a9328)
 
+Added support for predictive Fibonacci Retracement Targets based on a second smaller Swing Strength.
+
+![image](https://github.com/user-attachments/assets/081c193c-b1ce-4a31-8ca2-da68bdbe7848)
