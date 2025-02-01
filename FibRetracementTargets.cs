@@ -86,7 +86,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 			if (State == State.SetDefaults)
 			{
 				Calculate					= Calculate.OnBarClose;
-				Description					= @"Automatically draws Fibonacci Retracement target boxes. Based on the Swing indicator with higher-highs and lower-lows confirmation.";
+				Description					= "Automatically draws Fibonacci Retracement target boxes - By Alighten.";
 				Name						= "Fibonacci Retracement Targets";
 				DrawOnPricePanel			= true;
 				IsOverlay					= true;
